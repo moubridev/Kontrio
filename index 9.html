@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EnergiSmart — Votre énergie, enfin simple</title>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-T6FP9VDV');</script>
+<!-- End Google Tag Manager -->
+
+<!-- Google Analytics GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0TK08Y97ST"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-0TK08Y97ST');
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,800;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--gd:#0a3d2e;--gm:#1a6645;--gb:#2eb872;--gp:#eef8f3;--cr:#f8f8f5;--ch:#1a1a1a;--gr:#6b7280;--mg:#9ca3af;--wh:#fff;--bd:#e5e7eb}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:"DM Sans",sans-serif;color:var(--ch);background:var(--wh);overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:99;display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--bd)}
+.logo{font-family:"Playfair Display",serif;font-size:1.4rem;font-weight:800;letter-spacing:-.02em}.logo span{color:var(--gm)}
+.nav-links{display:flex;align-items:center;gap:2rem}.nav-links a{font-size:.88rem;color:var(--gr);text-decoration:none;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--ch)}.ncta{background:var(--gm)!important;color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600!important;transition:background .2s!important}
+.ncta:hover{background:var(--gd)!important}
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:8rem 2rem 5rem;position:relative;background:var(--wh)}
+.hero::after{content:"";position:absolute;width:600px;height:600px;right:-100px;bottom:-100px;background:radial-gradient(circle,rgba(46,184,114,.07),transparent 65%);pointer-events:none}
+.hi{position:relative;z-index:1;max-width:820px;text-align:center}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gm);margin-bottom:1.4rem;animation:fu .5s ease both}
+h1{font-family:"Playfair Display",serif;font-size:clamp(2.6rem,6vw,4.5rem);font-weight:800;line-height:1.08;margin-bottom:1.4rem;animation:fu .6s .1s ease both}
+h1 em{font-style:italic;color:var(--gm)}
+.sub{font-size:clamp(.95rem,2vw,1.15rem);color:var(--gr);line-height:1.75;max-width:560px;margin:0 auto 2rem;font-weight:300;animation:fu .6s .2s ease both}
+.pillars{display:flex;flex-wrap:wrap;justify-content:center;margin-bottom:2.5rem;animation:fu .6s .3s ease both}
+.pill{display:flex;align-items:center;gap:.45rem;padding:0 1.4rem;font-size:.86rem;font-weight:500}
+.pill:not(:last-child){border-right:1px solid var(--bd)}.pd{width:6px;height:6px;border-radius:50%;background:var(--gb);flex-shrink:0}
+.acts{display:flex;flex-wrap:wrap;gap:.9rem;justify-content:center;animation:fu .6s .4s ease both}
+.bp{background:var(--gm);color:#fff;font-weight:600;font-size:.93rem;padding:.82rem 1.9rem;border-radius:8px;text-decoration:none;box-shadow:0 2px 12px rgba(26,102,69,.22);transition:all .2s}
+.bp:hover{background:var(--gd);transform:translateY(-2px)}.bg{background:transparent;color:var(--gr);font-size:.93rem;padding:.82rem 1.9rem;border-radius:8px;border:1px solid var(--bd);text-decoration:none;transition:all .2s}
+.bg:hover{border-color:var(--gm);color:var(--gm)}
+.tpills{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;margin-top:1.8rem;animation:fu .6s .5s ease both}
+.tp{display:flex;align-items:center;gap:.45rem;padding:.4rem .9rem;background:var(--cr);border:1px solid var(--bd);border-radius:50px;font-size:.78rem;color:var(--gr);font-weight:500}
+.tpd{width:7px;height:7px;border-radius:50%;background:var(--gb);flex-shrink:0}
+.scroll-ind{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%)}
+.sli{width:1px;height:40px;background:linear-gradient(to bottom,transparent,var(--gm));animation:sa 2s ease-in-out infinite}
+@keyframes fu{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sa{0%,100%{opacity:.25}50%{opacity:.7}}
+.rv{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}.rv.vis{opacity:1;transform:translateY(0)}
+.stag{display:inline-block;font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gm);margin-bottom:.6rem}
+.stit{font-family:"Playfair Display",serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;line-height:1.15;margin-bottom:.9rem}
+.stit em{font-style:italic;color:var(--gm)}.ssub{font-size:.97rem;color:var(--gr);line-height:1.7;max-width:540px}
+.ctr{max-width:1100px;margin:0 auto}
+section{padding:5.5rem 2rem}
+.stats{background:var(--wh)}.sth{text-align:center;margin-bottom:3rem}
+.sti{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.4rem}
+.sc{padding:2rem 1.6rem;border-radius:12px;border:1px solid var(--bd);background:var(--cr);transition:transform .2s,border-color .2s}
+.sc:hover{transform:translateY(-3px);border-color:var(--gb)}
+.sn{font-family:"Playfair Display",serif;font-size:3rem;font-weight:800;color:var(--gm);line-height:1;margin-bottom:.5rem}
+.sl2{font-size:.88rem;color:var(--gr);line-height:1.5}.ss{font-size:.68rem;color:var(--mg);margin-top:.4rem}
+.how{background:var(--cr)}.hwh{text-align:center;margin-bottom:3.5rem}.hwh .ssub{margin:0 auto}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.4rem}
+.step{background:var(--wh);border-radius:14px;padding:2rem;border:1px solid var(--bd);transition:all .3s}
+.step:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.07);border-color:var(--gb)}
+.snum{font-family:"Playfair Display",serif;font-size:.8rem;font-weight:700;color:var(--gm);margin-bottom:.9rem}
+.sico{width:46px;height:46px;border-radius:11px;background:var(--gp);margin-bottom:1.1rem;display:flex;align-items:center;justify-content:center}
+.sico svg{width:21px;height:21px;stroke:var(--gm);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.step h3{font-size:1.05rem;font-weight:700;margin-bottom:.5rem}.step p{font-size:.88rem;color:var(--gr);line-height:1.6}
+.sdet{margin-top:1.1rem;padding-top:1.1rem;border-top:1px solid var(--bd);font-size:.76rem;color:var(--gm);font-weight:600}
+.indep{background:var(--wh)}
+.ii{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4.5rem;align-items:start}
+@media(max-width:768px){.ii{grid-template-columns:1fr;gap:2rem}}
+.ipts{display:flex;flex-direction:column;gap:1.1rem;margin-top:1.6rem}
+.ipt{display:flex;gap:.9rem;align-items:flex-start}
+.iptico{width:34px;height:34px;border-radius:7px;flex-shrink:0;background:var(--gp);display:flex;align-items:center;justify-content:center}
+.iptico svg{width:17px;height:17px;stroke:var(--gm);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.iptt strong{display:block;font-size:.88rem;font-weight:600;margin-bottom:.15rem}
+.iptt span{font-size:.82rem;color:var(--gr);line-height:1.5}
+.iv{background:var(--cr);border-radius:15px;border:1px solid var(--bd);padding:1.8rem}
+.ivt{font-size:.7rem;font-weight:600;color:var(--mg);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.3rem}
+.pi{padding:.9rem 0;border-bottom:1px solid var(--bd)}.pi:last-child{border-bottom:none;padding-bottom:0}.pi:first-child{padding-top:0}
+.pq{font-size:.88rem;font-style:italic;line-height:1.55;margin-bottom:.35rem}
+.pr{font-size:.78rem;color:var(--gm);font-weight:600}
+.cmp{background:var(--gd)}.cmph{text-align:center;margin-bottom:3.5rem}
+.cmp .stit{color:#fff}.cmp .stag{color:rgba(168,240,198,.7)}
+.csub{font-size:.97rem;color:rgba(255,255,255,.5);max-width:500px;margin:.7rem auto 0;line-height:1.65}
+.ctbl{max-width:840px;margin:0 auto;border-radius:13px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.chd{display:grid;grid-template-columns:2.2fr 1fr 1fr;background:rgba(255,255,255,.05);padding:.9rem 1.4rem;font-size:.73rem;font-weight:600;color:rgba(255,255,255,.35);letter-spacing:.08em;text-transform:uppercase}
+.ces{color:var(--gb)!important}
+.cr2{display:grid;grid-template-columns:2.2fr 1fr 1fr;padding:.9rem 1.4rem;border-top:1px solid rgba(255,255,255,.05);align-items:center}
+.cf{font-size:.85rem;color:rgba(255,255,255,.68)}.cc{text-align:center}
+.ck{color:var(--gb);font-weight:700}.cx{color:rgba(255,255,255,.15)}
+.pricing{background:var(--cr)}
+.prh{text-align:center;margin-bottom:3.5rem}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.4rem;max-width:1000px;margin:0 auto}
+.pcard{background:var(--wh);border-radius:16px;padding:2.2rem;border:1px solid var(--bd);display:flex;flex-direction:column;transition:all .3s;position:relative}
+.pcard:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,.08)}
+.pcard.featured{border:2px solid var(--gb)}
+.pbadge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--gb);color:var(--gd);font-size:.68rem;font-weight:700;padding:.28rem .9rem;border-radius:50px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.pname{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--mg);margin-bottom:.8rem}
+.pprice{font-family:"Playfair Display",serif;font-size:3rem;font-weight:800;color:var(--ch);line-height:1;margin-bottom:.3rem}
+.pprice span{font-size:1rem;font-weight:500;color:var(--gr);font-family:"DM Sans",sans-serif}
+.pperiod{font-size:.78rem;color:var(--mg);margin-bottom:1.6rem}
+.pfeats{list-style:none;display:flex;flex-direction:column;gap:.7rem;margin-bottom:2rem;flex:1}
+.pfeats li{display:flex;align-items:flex-start;gap:.6rem;font-size:.86rem;color:var(--gr);line-height:1.45}
+.pfeats li::before{content:"✓";color:var(--gb);font-weight:700;flex-shrink:0}
+.pfeats li.no{color:var(--mg)}.pfeats li.no::before{content:"–";color:var(--mg)}
+.pbtn{display:block;width:100%;padding:.85rem;border-radius:9px;font-family:"DM Sans",sans-serif;font-size:.92rem;font-weight:700;text-align:center;cursor:pointer;border:none;transition:all .2s}
+.pbtn-primary{background:var(--gm);color:#fff}.pbtn-primary:hover{background:var(--gd);transform:translateY(-1px)}
+.pbtn-outline{background:transparent;color:var(--gm);border:1.5px solid var(--gm)}.pbtn-outline:hover{background:var(--gp)}
+.pannual{text-align:center;margin-top:1.5rem;font-size:.82rem;color:var(--gr)}
+.pannual strong{color:var(--gm)}
+.faq{background:var(--wh)}.faqh{text-align:center;margin-bottom:2.5rem}
+.faql{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:.55rem}
+.faqit{border-radius:9px;border:1px solid var(--bd);overflow:hidden;transition:border-color .2s}.faqit.op{border-color:var(--gb)}
+.faqq{width:100%;text-align:left;padding:1.1rem 1.3rem;display:flex;justify-content:space-between;align-items:center;background:none;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:.9rem;font-weight:600;color:var(--ch);gap:.9rem}
+.faqarr{flex-shrink:0;width:21px;height:21px;border-radius:50%;background:var(--cr);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:.58rem;color:var(--gr);transition:all .3s}
+.faqit.op .faqarr{transform:rotate(180deg);background:var(--gm);border-color:var(--gm);color:#fff}
+.faqa{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s;font-size:.86rem;color:var(--gr);line-height:1.68;padding:0 1.3rem}
+.faqit.op .faqa{max-height:250px;padding:0 1.3rem 1.2rem}
+.fsec{background:var(--gd);padding:6.5rem 2rem;position:relative;overflow:hidden}
+.fsec::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 90% 20%,rgba(46,184,114,.1),transparent 70%)}
+.fin{position:relative;z-index:1;max-width:620px;margin:0 auto;text-align:center}
+.fin .stit{color:#fff;margin-bottom:.7rem}.fin .stag{color:rgba(168,240,198,.75)}
+.fdesc{font-size:.97rem;color:rgba(255,255,255,.5);line-height:1.68;margin-bottom:2.2rem}
+.fcard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:17px;padding:2.2rem;text-align:left}
+.fsteps{display:flex;align-items:center;margin-bottom:1.8rem}
+.fst{display:flex;flex-direction:column;align-items:center;gap:.28rem}
+.fstd{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:rgba(255,255,255,.28);transition:all .3s}
+.fst.act .fstd{background:var(--gb);border-color:var(--gb);color:var(--gd)}
+.fst.dn .fstd{background:var(--gm);border-color:var(--gm);color:#fff}
+.fstl{font-size:.6rem;color:rgba(255,255,255,.28);white-space:nowrap;letter-spacing:.05em;text-transform:uppercase}
+.fst.act .fstl{color:rgba(255,255,255,.6)}
+.fline{flex:1;height:1.5px;background:rgba(255,255,255,.09);margin-bottom:1rem}
+.fline.dn{background:var(--gm)}
+.fp{display:none}.fp.act{display:block}
+.fl{display:block;font-size:.81rem;font-weight:600;color:rgba(255,255,255,.72);margin-bottom:.42rem}
+.fi{width:100%;padding:.82rem 1rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-family:"DM Sans",sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;margin-bottom:1rem}
+.fi::placeholder{color:rgba(255,255,255,.22)}.fi:focus{border-color:var(--gb);background:rgba(255,255,255,.1)}
+.rg{display:flex;flex-direction:column;gap:.55rem;margin-bottom:1rem}
+.ro{display:flex;align-items:center;gap:.7rem;padding:.82rem 1rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;cursor:pointer;transition:all .2s}
+.ro:hover{background:rgba(46,184,114,.08);border-color:rgba(46,184,114,.2)}.ro.sel{background:rgba(46,184,114,.12);border-color:var(--gb)}
+.ro input{accent-color:var(--gb);width:15px;height:15px;flex-shrink:0}.ro label{cursor:pointer;font-size:.86rem;color:rgba(255,255,255,.72)}
+.fbn{width:100%;padding:.88rem;background:var(--gb);color:var(--gd);font-family:"DM Sans",sans-serif;font-size:.93rem;font-weight:700;border:none;border-radius:8px;cursor:pointer;margin-top:.28rem;transition:all .2s}
+.fbn:hover{background:#a8f0c6;transform:translateY(-1px)}
+.fbb{background:none;border:none;color:rgba(255,255,255,.3);font-size:.8rem;cursor:pointer;margin-top:.7rem;font-family:"DM Sans",sans-serif;display:block;text-align:center;width:100%}
+.fgdpr{font-size:.67rem;color:rgba(255,255,255,.2);line-height:1.5;margin-top:.9rem}
+.fsucc{display:none;text-align:center;padding:.4rem 0}
+.fscir{width:62px;height:62px;border-radius:50%;background:var(--gb);display:flex;align-items:center;justify-content:center;margin:0 auto 1.3rem;animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
+.fscir svg{width:26px;height:26px;stroke:var(--gd);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.fsucc h3{color:#fff;font-size:1.25rem;font-weight:700;margin-bottom:.5rem}
+.fsucc p{color:rgba(255,255,255,.5);font-size:.86rem;line-height:1.65}
+footer{background:var(--ch);padding:2.8rem 2rem;text-align:center}
+.flogo{font-family:"Playfair Display",serif;font-size:1.25rem;font-weight:800;color:#fff;margin-bottom:.6rem}
+.flogo span{color:var(--gb)}footer p{font-size:.76rem;color:rgba(255,255,255,.27);line-height:1.75}
+footer a{color:rgba(255,255,255,.32);text-decoration:none}footer a:hover{color:var(--gb)}
+@media(max-width:640px){nav{padding:.9rem 1.2rem}.nav-links{display:none}.hero{padding:6.5rem 1.5rem 4rem}.pill{padding:0 .8rem;font-size:.76rem}.sti{grid-template-columns:1fr 1fr}.chd,.cr2{grid-template-columns:1.6fr 1fr 1fr;font-size:.74rem}.fcard{padding:1.4rem}.pgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T6FP9VDV" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+<nav>
+  <div class="logo">Energi<span>Smart</span></div>
+  <div class="nav-links">
+    <a href="#comment">Comment ça marche</a>
+    <a href="#comparer">Comparer</a>
+    <a href="#tarifs">Tarifs</a>
+    <a href="#faq">FAQ</a>
+    <a href="#rejoindre" class="ncta" onclick="tc('nav_cta')">Rejoindre la liste</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hi">
+    <div class="eyebrow">— Bientôt disponible en Belgique —</div>
+    <h1>Votre énergie,<br/><em>enfin simple.</em></h1>
+    <p class="sub">EnergiSmart surveille votre contrat d'énergie 24h/24, vous alerte quand vous pouvez économiser, et vous dit quoi faire — sans jargon, sans effort.</p>
+    <div class="pillars">
+      <div class="pill"><div class="pd"></div>Payez moins sans rien chercher</div>
+      <div class="pill"><div class="pd"></div>On gère tout à votre place</div>
+      <div class="pill"><div class="pd"></div>Aucune commission des fournisseurs</div>
+    </div>
+    <div class="acts">
+      <a href="#tarifs" class="bp" onclick="tc('hero_cta_principal')">Je veux économiser sur ma facture</a>
+      <a href="#comment" class="bg" onclick="tc('hero_cta_secondaire')">Voir comment ça marche</a>
+    </div>
+    <div class="tpills">
+      <div class="tp"><div class="tpd"></div>Surveillance hebdomadaire</div>
+      <div class="tp"><div class="tpd"></div>Aucune commission fournisseur</div>
+      <div class="tp"><div class="tpd"></div>3 régions belges</div>
+      <div class="tp"><div class="tpd"></div>Annulable à tout moment</div>
+    </div>
+  </div>
+  <div class="scroll-ind"><div class="sli"></div></div>
+</section>
+
+<section class="stats">
+  <div class="ctr">
+    <div class="sth rv"><div class="stag">Le problème en chiffres</div><h2 class="stit">Le marché de l'énergie belge<br/><em>est conçu pour être compliqué.</em></h2></div>
+    <div class="sti">
+      <div class="sc rv"><div class="sn">1.200 €</div><div class="sl2">payés en trop chaque année par le Belge moyen</div><div class="ss">Source : CREG 2024</div></div>
+      <div class="sc rv"><div class="sn">27</div><div class="sl2">fournisseurs actifs en Belgique — impossible de tous comparer</div><div class="ss">Marché belge</div></div>
+      <div class="sc rv"><div class="sn">30 %</div><div class="sl2">de variation possible sur un contrat variable en 5 mois</div><div class="ss">VREG / CWaPE</div></div>
+      <div class="sc rv"><div class="sn">5 €</div><div class="sl2">par mois — souvent récupéré dès le premier mois</div><div class="ss">Plan Smart</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="comment">
+  <div class="ctr">
+    <div class="hwh rv"><div class="stag">Comment ça marche</div><h2 class="stit">3 étapes.<br/><em>Zéro complication.</em></h2><p class="ssub">Juste votre facture, et on s'occupe du reste.</p></div>
+    <div class="steps">
+      <div class="step rv"><div class="snum">Étape 01</div><div class="sico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><h3>Vous uploadez votre facture</h3><p>Photo ou PDF de votre dernière facture. Notre IA lit tout automatiquement : fournisseur, prix, consommation, dates.</p><div class="sdet">Moins de 2 minutes</div></div>
+      <div class="step rv"><div class="snum">Étape 02</div><div class="sico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><h3>On surveille pour vous, en continu</h3><p>EnergiSmart compare votre contrat avec le marché chaque semaine. Prix qui monte, renouvellement imminent — on détecte tout avant vous.</p><div class="sdet">Surveillance 7j/7</div></div>
+      <div class="step rv"><div class="snum">Étape 03</div><div class="sico"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.54 5.54l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><h3>Vous recevez une alerte claire</h3><p>Email ou SMS avec une recommandation précise : combien vous économisez et comment changer en quelques clics.</p><div class="sdet">Vous gardez le contrôle total</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="indep">
+  <div class="ii">
+    <div class="rv">
+      <div class="stag">Notre engagement</div>
+      <h2 class="stit">Nous sommes payés<br/>par vous — <em>pas par eux.</em></h2>
+      <p class="ssub" style="margin-bottom:0">La plupart des comparateurs sont financés par les fournisseurs qu'ils recommandent. EnergiSmart fonctionne différemment : nos seuls revenus viennent de votre abonnement. Quand on vous recommande de changer, c'est uniquement parce que le calcul est meilleur pour vous.</p>
+      <div class="ipts">
+        <div class="ipt"><div class="iptico"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="iptt"><strong>Zéro commission fournisseur</strong><span>Aucune rémunération des fournisseurs, quelle qu'elle soit.</span></div></div>
+        <div class="ipt"><div class="iptico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="iptt"><strong>Abonnement mensuel transparent</strong><span>5 €/mois sans engagement. Notre seule source de revenus.</span></div></div>
+        <div class="ipt"><div class="iptico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="iptt"><strong>Classement 100 % objectif</strong><span>Offres classées uniquement selon l'économie réelle pour votre profil.</span></div></div>
+      </div>
+    </div>
+    <div class="iv rv">
+      <div class="ivt">Ce que nos prospects nous disent</div>
+      <div class="pi"><div class="pq">« Je ne sais jamais si mon contrat est encore bon ou si je paye trop. »</div><div class="pr">EnergiSmart vérifie ça chaque semaine pour vous.</div></div>
+      <div class="pi"><div class="pq">« J'ai comparé une fois il y a 2 ans. Depuis, je n'ai plus eu le courage. »</div><div class="pr">Plus besoin de courage — on vous alerte quand ça vaut le coup.</div></div>
+      <div class="pi"><div class="pq">« Mon contrat s'est reconduit tacitement. J'ai perdu 300 € sans m'en rendre compte. »</div><div class="pr">Alerte automatique 90 jours avant chaque échéance.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cmp" id="comparer">
+  <div class="ctr">
+    <div class="cmph rv"><div class="stag">Comparaison</div><h2 class="stit">Pas un comparateur de plus.</h2><p class="csub">Les comparateurs vous donnent un résultat ponctuel. EnergiSmart surveille votre situation chaque semaine.</p></div>
+    <div class="ctbl rv">
+      <div class="chd"><div>Fonctionnalité</div><div class="cc ces">EnergiSmart</div><div class="cc">Comparateurs</div></div>
+      <div class="cr2"><div class="cf">Surveillance continue du contrat</div><div class="cc ck">✓</div><div class="cc cx">✗</div></div>
+      <div class="cr2"><div class="cf">Alerte avant une hausse de prix</div><div class="cc ck">✓</div><div class="cc cx">✗</div></div>
+      <div class="cr2"><div class="cf">Alerte renouvellement tacite</div><div class="cc ck">✓</div><div class="cc cx">✗</div></div>
+      <div class="cr2"><div class="cf">Comparaison de marché</div><div class="cc ck">✓</div><div class="cc ck">✓</div></div>
+      <div class="cr2"><div class="cf">Aucune commission des fournisseurs</div><div class="cc ck">✓</div><div class="cc cx">✗</div></div>
+      <div class="cr2"><div class="cf">Recommandation adaptée (panneaux, PAC, VE)</div><div class="cc ck">✓</div><div class="cc cx">✗</div></div>
+      <div class="cr2"><div class="cf">Analyse de votre consommation réelle</div><div class="cc ck">✓</div><div class="cc cx">✗</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="tarifs">
+  <div class="ctr">
+    <div class="prh rv">
+      <div class="stag">Tarifs</div>
+      <h2 class="stit">Simple, transparent,<br/><em>sans surprise.</em></h2>
+      <p class="ssub" style="margin:0 auto">Choisissez le plan qui correspond à votre situation. Aucun engagement, annulable à tout moment.</p>
+    </div>
+    <div class="pgrid">
+      <div class="pcard rv">
+        <div class="pname">Free</div>
+        <div class="pprice">0 €</div>
+        <div class="pperiod">Pour toujours gratuit</div>
+        <ul class="pfeats">
+          <li>1 contrat surveillé</li>
+          <li>Score de votre contrat</li>
+          <li>Alertes email</li>
+          <li>Comparaison mensuelle</li>
+          <li class="no">Multi-énergie</li>
+          <li class="no">Alertes SMS</li>
+          <li class="no">Simulations personnalisées</li>
+        </ul>
+        <button class="pbtn pbtn-outline" onclick="selectPlan('free')">Commencer gratuitement</button>
+      </div>
+      <div class="pcard featured rv">
+        <div class="pbadge">Le plus populaire</div>
+        <div class="pname">Smart</div>
+        <div class="pprice">4,99 €<span>/mois</span></div>
+        <div class="pperiod">ou 49 €/an — 2 mois offerts</div>
+        <ul class="pfeats">
+          <li>Contrats illimités</li>
+          <li>Électricité + gaz + mazout</li>
+          <li>Alertes email et SMS</li>
+          <li>Simulations personnalisées</li>
+          <li>Analyse panneaux solaires</li>
+          <li>Alerte renouvellement tacite</li>
+          <li class="no">Multi-sites PME</li>
+        </ul>
+        <button class="pbtn pbtn-primary" onclick="selectPlan('smart')">Je veux ce plan</button>
+      </div>
+      <div class="pcard rv">
+        <div class="pname">Business</div>
+        <div class="pprice">19,99 €<span>/mois</span></div>
+        <div class="pperiod">ou 199 €/an — 2 mois offerts</div>
+        <ul class="pfeats">
+          <li>Tout le plan Smart</li>
+          <li>Multi-sites illimités</li>
+          <li>Rapports PDF mensuels</li>
+          <li>Dashboard PME dédié</li>
+          <li>Support prioritaire</li>
+          <li>Analyse par site/compteur</li>
+          <li>Export données CSV</li>
+        </ul>
+        <button class="pbtn pbtn-outline" onclick="selectPlan('business')">Je veux ce plan</button>
+      </div>
+    </div>
+    <p class="pannual rv">En choisissant l'abonnement annuel, vous économisez <strong>2 mois offerts</strong> — et vous aidez à financer le développement.</p>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="ctr">
+    <div class="faqh rv"><div class="stag">Questions fréquentes</div><h2 class="stit">Tout ce que vous<br/><em>voulez savoir.</em></h2></div>
+    <div class="faql">
+      <div class="faqit rv"><button class="faqq" onclick="tFaq(this)">Est-ce qu'EnergiSmart change mon fournisseur sans me demander ?<span class="faqarr">▼</span></button><div class="faqa">Non, jamais. Vous êtes toujours celui qui décide et valide. Contrôle total à chaque étape.</div></div>
+      <div class="faqit rv"><button class="faqq" onclick="tFaq(this)">Pourquoi vous faire confiance si vous ne recevez pas de commissions ?<span class="faqarr">▼</span></button><div class="faqa">Notre modèle est simple : vous payez un abonnement, et nous avons tout intérêt à ce que vous économisiez — sinon vous partez.</div></div>
+      <div class="faqit rv"><button class="faqq" onclick="tFaq(this)">Ça fonctionne pour les 3 régions de Belgique ?<span class="faqarr">▼</span></button><div class="faqa">Oui. Flandre (VREG), Wallonie (CWaPE) et Bruxelles (BRUGEL). Notre moteur intègre les règles des trois régions.</div></div>
+      <div class="faqit rv"><button class="faqq" onclick="tFaq(this)">J'ai des panneaux solaires, est-ce utile ?<span class="faqarr">▼</span></button><div class="faqa">Encore plus que pour les autres. EnergiSmart analyse votre contrat de prélèvement ET votre tarif d'injection.</div></div>
+      <div class="faqit rv"><button class="faqq" onclick="tFaq(this)">Combien ça coûte ? Est-ce que je peux annuler ?<span class="faqarr">▼</span></button><div class="faqa">4,99 €/mois ou 49 €/an pour le plan Smart. Aucun engagement, annulation à tout moment. Plan gratuit disponible.</div></div>
+      <div class="faqit rv"><button class="faqq" onclick="tFaq(this)">Mes données sont-elles en sécurité ?<span class="faqarr">▼</span></button><div class="faqa">Données hébergées en Europe, factures supprimées après 30 jours. Conformité RGPD complète.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="fsec" id="rejoindre">
+  <div class="fin">
+    <div class="stag rv">Liste d'attente</div>
+    <h2 class="stit rv">Soyez parmi<br/><em>les premiers.</em></h2>
+    <p class="fdesc rv">EnergiSmart est en cours de développement. Laissez votre email — vous serez prévenu en avant-première et bénéficierez d'un accès prioritaire au lancement.</p>
+    <div class="fcard rv">
+      <div class="fsteps" id="fsteps">
+        <div class="fst act" id="fs1"><div class="fstd">1</div><div class="fstl">Contact</div></div>
+        <div class="fline" id="fl1"></div>
+        <div class="fst" id="fs2"><div class="fstd">2</div><div class="fstl">Situation</div></div>
+        <div class="fline" id="fl2"></div>
+        <div class="fst" id="fs3"><div class="fstd">3</div><div class="fstl">Plan choisi</div></div>
+      </div>
+      <div class="fp act" id="fp1">
+        <label class="fl">Votre prénom</label>
+        <input type="text" class="fi" id="fn" placeholder="Marie"/>
+        <label class="fl">Votre adresse email</label>
+        <input type="email" class="fi" id="fe" placeholder="marie@exemple.be"/>
+        <button class="fbn" onclick="nP(1)">Continuer</button>
+        <div class="fgdpr">Vos données restent privées. Aucune publicité. Désabonnement en 1 clic.</div>
+      </div>
+      <div class="fp" id="fp2">
+        <label class="fl">Quelle est votre situation ?</label>
+        <div class="rg">
+          <div class="ro" onclick="sR(this,'sit')"><input type="radio" name="sit" value="proprietaire"/><label>Propriétaire (maison ou appartement)</label></div>
+          <div class="ro" onclick="sR(this,'sit')"><input type="radio" name="sit" value="locataire"/><label>Locataire</label></div>
+          <div class="ro" onclick="sR(this,'sit')"><input type="radio" name="sit" value="pme"/><label>Indépendant / PME</label></div>
+        </div>
+        <label class="fl" style="margin-top:.2rem">Avez-vous des panneaux solaires ?</label>
+        <div class="rg">
+          <div class="ro" onclick="sR(this,'pv')"><input type="radio" name="pv" value="oui"/><label>Oui, j'ai des panneaux solaires</label></div>
+          <div class="ro" onclick="sR(this,'pv')"><input type="radio" name="pv" value="non"/><label>Non, pas encore</label></div>
+          <div class="ro" onclick="sR(this,'pv')"><input type="radio" name="pv" value="prevu"/><label>J'y pense sérieusement</label></div>
+        </div>
+        <button class="fbn" onclick="nP(2)">Continuer</button>
+        <button class="fbb" onclick="pP(2)">← Retour</button>
+      </div>
+      <div class="fp" id="fp3">
+        <label class="fl">Quel plan vous intéresse ? (en sachant que c'est payant)</label>
+        <div class="rg">
+          <div class="ro" onclick="sR(this,'plan');tc('plan_free_formulaire')"><input type="radio" name="plan" value="free"/><label>Free — gratuit, pour découvrir</label></div>
+          <div class="ro" onclick="sR(this,'plan');tc('plan_smart_formulaire')"><input type="radio" name="plan" value="smart"/><label>Smart — 4,99 €/mois (particuliers)</label></div>
+          <div class="ro" onclick="sR(this,'plan');tc('plan_business_formulaire')"><input type="radio" name="plan" value="business"/><label>Business — 19,99 €/mois (PME)</label></div>
+        </div>
+        <button class="fbn" onclick="subF()">Je rejoins la liste d'attente</button>
+        <button class="fbb" onclick="pP(3)">← Retour</button>
+        <div class="fgdpr">En soumettant, vous acceptez d'être recontacté par EnergiSmart dans le cadre du lancement.</div>
+      </div>
+      <div class="fsucc" id="fsucc">
+        <div class="fscir"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h3>Vous êtes sur la liste !</h3>
+        <p>Merci <span id="fsn"></span>. Vous serez parmi les premiers prévenus du lancement. À très bientôt.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="flogo">Energi<span>Smart</span></div>
+  <p>Projet en cours de développement · Belgique · 2025<br/><a href="mailto:hello@energismart.be">hello@energismart.be</a> · <a href="#">Confidentialité</a> · <a href="#">RGPD</a></p>
+</footer>
+
+<script>
+// Scroll reveal
+var obs=new IntersectionObserver(function(e){e.forEach(function(e,i){if(e.isIntersecting){setTimeout(function(){e.target.classList.add("vis")},i*70);obs.unobserve(e.target)}})},{threshold:.08});
+document.querySelectorAll(".rv").forEach(function(el){obs.observe(el)});
+
+// FAQ accordion
+function tFaq(b){var it=b.closest(".faqit"),op=it.classList.contains("op");document.querySelectorAll(".faqit.op").forEach(function(i){i.classList.remove("op")});if(!op)it.classList.add("op")}
+
+// GA4 tracking
+function tc(label){if(typeof gtag!=='undefined'){gtag('event','click',{event_category:'CTA',event_label:label});}}
+
+// Click sur un plan dans la section tarifs → scroll vers formulaire + préselection
+function selectPlan(plan){
+  tc('tarifs_clic_'+plan);
+  document.getElementById('rejoindre').scrollIntoView({behavior:'smooth'});
+  setTimeout(function(){
+    gP(3);
+    document.querySelectorAll("input[name='plan']").forEach(function(r){
+      r.closest('.ro').classList.remove('sel');
+      if(r.value===plan){r.checked=true;r.closest('.ro').classList.add('sel');}
+    });
+  },700);
+}
+
+// Navigation formulaire
+var cp=1;
+function nP(f){if(f===1){var n=document.getElementById("fn").value.trim(),e=document.getElementById("fe").value.trim();if(!n||!e||e.indexOf("@")===-1)return;}gP(f+1);}
+function pP(f){gP(f-1);}
+function gP(n){
+  document.getElementById("fp"+cp).classList.remove("act");
+  document.getElementById("fp"+n).classList.add("act");
+  for(var i=1;i<=3;i++){var s=document.getElementById("fs"+i);s.classList.remove("act","dn");if(i<n)s.classList.add("dn");if(i===n)s.classList.add("act");}
+  for(var j=1;j<=2;j++)document.getElementById("fl"+j).classList.toggle("dn",j<n);
+  cp=n;
+}
+function sR(el,nm){document.querySelectorAll("input[name="+nm+"]").forEach(function(r){r.closest(".ro").classList.remove("sel");});el.classList.add("sel");el.querySelector("input").checked=true;}
+
+// Soumission formulaire
+function subF(){
+  var name=document.getElementById("fn").value.trim();
+  var email=document.getElementById("fe").value.trim();
+  var plan=document.querySelector("input[name='plan']:checked");
+  var pv=document.querySelector("input[name='pv']:checked");
+  var sit=document.querySelector("input[name='sit']:checked");
+  var planVal=plan?plan.value:'non_renseigne';
+
+  // Track soumission avec plan choisi
+  tc('formulaire_soumis_'+planVal);
+  if(typeof gtag!=='undefined'){
+    gtag('event','generate_lead',{
+      event_category:'Formulaire',
+      event_label:planVal,
+      value:planVal==='smart'?4.99:planVal==='business'?19.99:0
+    });
+  }
+
+  document.getElementById("fp3").classList.remove("act");
+  document.getElementById("fsteps").style.display="none";
+  document.getElementById("fsn").textContent=name;
+  document.getElementById("fsucc").style.display="block";
+}
+</script>
+</body>
+</html>
