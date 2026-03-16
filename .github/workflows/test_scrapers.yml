@@ -1,0 +1,299 @@
+name: Kontrio — Test Scrapers
+
+on:
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Quel test lancer ?"
+        required: true
+        default: "connexion"
+        type: choice
+        options:
+          - connexion
+          - elia_prix_spot
+          - donnees_avancees
+          - meteo
+          - offres_vreg
+          - mazout
+          - tout
+
+jobs:
+  test:
+    name: Test — ${{ github.event.inputs.test }}
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ── Toujours : vérifier la connexion Supabase ──────────────
+      - name: "Vérification connexion Supabase"
+        run: |
+          echo "Test connexion vers ${{ secrets.SUPABASE_URL }}"
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/fournisseurs?select=nom&limit=3" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}")
+          echo "HTTP Status : $RESPONSE"
+          if [ "$RESPONSE" != "200" ]; then
+            echo "ERREUR : Supabase inaccessible (HTTP $RESPONSE)"
+            exit 1
+          fi
+          echo "OK : Supabase accessible"
+
+          # Compter les données existantes
+          echo ""
+          echo "=== Données actuelles en base ==="
+          for TABLE in fournisseurs offres_marche prix_spot_marche donnees_marche_avancees prix_mazout tarifs_reseau contexte_reglementaire primes_renovation; do
+            COUNT=$(curl -s \
+              "${{ secrets.SUPABASE_URL }}/rest/v1/$TABLE?select=*&limit=1" \
+              -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+              -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+              -H "Prefer: count=exact" \
+              -I 2>/dev/null | grep -i "content-range" | sed 's/.*\///' | tr -d '[:space:]\r')
+            echo "  $TABLE : ${COUNT:-0} lignes"
+          done
+
+      # ── TEST : Prix Spot Elia ────────────────────────────────
+      - name: "TEST — Prix Spot Elia (API officielle)"
+        if: github.event.inputs.test == 'elia_prix_spot' || github.event.inputs.test == 'tout'
+        run: |
+          echo "=== TEST Prix Spot Elia ==="
+          echo "Source : https://opendata.elia.be (API publique officielle)"
+          echo ""
+
+          # 1. Tester l'API Elia directement
+          echo "--- Appel direct API Elia ---"
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods031/records?limit=3&order_by=datetime+desc&select=datetime,price")
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS")
+          echo "HTTP Status : $HTTP_STATUS"
+          if [ "$HTTP_STATUS" == "200" ]; then
+            echo "OK : API Elia accessible"
+            echo "Données reçues :"
+            echo "$BODY" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          records = d.get('results', [])
+          print(f'  Nombre de records : {len(records)}')
+          for r in records[:3]:
+              print(f'  {r.get(\"datetime\",\"?\")} → {r.get(\"price\",\"?\")} €/MWh')
+          "
+          else
+            echo "ERREUR : API Elia inaccessible (HTTP $HTTP_STATUS)"
+          fi
+
+          echo ""
+          echo "--- Appel Edge Function Supabase ---"
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/scraper-prix-spot-elia" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            --max-time 30)
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS")
+          echo "HTTP Status : $HTTP_STATUS"
+          echo "$BODY" | python3 -c "
+          import sys, json
+          try:
+              d = json.load(sys.stdin)
+              print(f'  Succès : {d.get(\"succes\")}')
+              print(f'  Insertions : {d.get(\"nb_inseres\", 0)}')
+              for line in d.get('log', [])[:10]:
+                  print(f'  {line}')
+          except Exception as e:
+              print(f'  Parsing erreur : {e}')
+              print(f'  Réponse brute : {sys.stdin.read()[:200]}')
+          " <<< "$BODY"
+
+          # 3. Vérifier que les données sont bien en base
+          echo ""
+          echo "--- Vérification en base ---"
+          COUNT=$(curl -s \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/prix_spot_marche?select=*&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Prefer: count=exact" \
+            -I 2>/dev/null | grep -i "content-range" | sed 's/.*\///' | tr -d '[:space:]\r')
+          echo "  prix_spot_marche : ${COUNT:-0} lignes"
+          DERNIERE=$(curl -s \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/prix_spot_marche?select=date_heure,prix_eur_mwh&order=date_heure.desc&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}")
+          echo "  Dernière entrée : $DERNIERE"
+
+      # ── TEST : Données Avancées Marché ────────────────────────
+      - name: "TEST — Données Avancées (Nucléaire, Stockage gaz, Météo)"
+        if: github.event.inputs.test == 'donnees_avancees' || github.event.inputs.test == 'tout'
+        run: |
+          echo "=== TEST Données Avancées ==="
+          echo ""
+
+          echo "--- Test API Elia nucléaire ---"
+          R=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods029/records?limit=1&order_by=datetime+desc&select=datetime,generatedpower")
+          echo "  Elia nucléaire : HTTP $R"
+
+          echo "--- Test API AGSI stockage gaz ---"
+          R=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://agsi.gie.eu/api?type=EU")
+          echo "  AGSI stockage gaz : HTTP $R"
+
+          echo "--- Test API Open-Meteo météo ---"
+          R=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://api.open-meteo.com/v1/forecast?latitude=50.85&longitude=4.35&daily=temperature_2m_mean&forecast_days=3&timezone=Europe%2FBrussels")
+          echo "  Open-Meteo : HTTP $R"
+
+          echo ""
+          echo "--- Appel Edge Function scraper-donnees-avancees ---"
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/scraper-donnees-avancees" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            --max-time 45)
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS")
+          echo "HTTP : $HTTP_STATUS"
+          echo "$BODY" | python3 -c "
+          import sys, json
+          try:
+              d = json.load(sys.stdin)
+              print(f'  Succès : {d.get(\"succes\")}')
+              print(f'  Insertions : {d.get(\"nb_inseres\", 0)}')
+              for line in d.get('log', []):
+                  print(f'  {line}')
+          except Exception as e:
+              print(f'  Erreur parsing : {e}')
+          " <<< "$BODY" || true
+
+      # ── TEST : Météo Belgique ─────────────────────────────────
+      - name: "TEST — Météo Belgique (degrés-jours)"
+        if: github.event.inputs.test == 'meteo' || github.event.inputs.test == 'tout'
+        run: |
+          echo "=== TEST Météo ==="
+          echo ""
+
+          echo "--- Open-Meteo Bruxelles ---"
+          curl -s "https://api.open-meteo.com/v1/forecast?latitude=50.85&longitude=4.35&daily=temperature_2m_mean&forecast_days=7&timezone=Europe%2FBrussels" | \
+          python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          dates = d['daily']['time']
+          temps = d['daily']['temperature_2m_mean']
+          print('  Date          | Temp | DJC (max 0, 15-T)')
+          print('  ' + '-'*40)
+          for i in range(min(5, len(dates))):
+              djc = max(0, 15 - temps[i])
+              print(f'  {dates[i]} | {temps[i]:.1f}°C | {djc:.1f}')
+          "
+
+          echo ""
+          echo "--- Appel Edge Function ---"
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/scraper-meteo-belgique" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}' --max-time 30)
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS")
+          echo "HTTP : $HTTP_STATUS | Succès : $(echo $BODY | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("succes"))' 2>/dev/null)"
+
+      # ── TEST : Offres VREG ────────────────────────────────────
+      - name: "TEST — Offres marché VREG"
+        if: github.event.inputs.test == 'offres_vreg' || github.event.inputs.test == 'tout'
+        run: |
+          echo "=== TEST Offres VREG ==="
+          echo ""
+
+          echo "--- Test accessibilité VREG ---"
+          R=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://vtest.vreg.be")
+          echo "  vtest.vreg.be : HTTP $R"
+
+          echo "--- Test accessibilité CompaCWaPE ---"
+          R=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://www.compacwape.be")
+          echo "  compacwape.be : HTTP $R"
+
+          echo "--- Test accessibilité BRUGEL ---"
+          R=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://brugel.brussels")
+          echo "  brugel.brussels : HTTP $R"
+
+          echo ""
+          echo "--- Appel Edge Function scraper-offres-vreg ---"
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/scraper-offres-vreg" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}' --max-time 60)
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS")
+          echo "HTTP : $HTTP_STATUS"
+          echo "$BODY" | python3 -c "
+          import sys, json
+          try:
+              d = json.load(sys.stdin)
+              print(f'  Succès : {d.get(\"succes\")}')
+              print(f'  Offres : {d.get(\"nb_offres\",0)}')
+              for line in d.get('log', [])[:10]:
+                  print(f'  {line}')
+          except: pass
+          " <<< "$BODY" || true
+
+      # ── TEST : Prix Mazout ────────────────────────────────────
+      - name: "TEST — Prix Mazout SPF Économie"
+        if: github.event.inputs.test == 'mazout' || github.event.inputs.test == 'tout'
+        run: |
+          echo "=== TEST Prix Mazout ==="
+          echo ""
+
+          echo "--- Test accessibilité sources mazout ---"
+          for URL in "https://carbu.com/belgique/prixmaximum" "https://www.mazout-on-line.be/fr/prix-du-mazout-en-belgique/" "https://groupasol.com/fr/mazout/achat-immediat"; do
+            R=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0" \
+              "$URL")
+            echo "  $URL → HTTP $R"
+          done
+
+          echo ""
+          echo "--- Données mazout actuelles en base ---"
+          MAZOUT=$(curl -s \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/prix_mazout?select=date_prix,prix_officiel_max,conseil_achat&order=date_prix.desc&limit=3" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}")
+          echo "$MAZOUT" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          for d in data:
+              print(f'  {d[\"date_prix\"]} → {d[\"prix_officiel_max\"]} €/L | conseil: {d[\"conseil_achat\"]}')
+          " || echo "  $MAZOUT"
+
+      # ── Résumé final ──────────────────────────────────────────
+      - name: "Résumé final"
+        if: always()
+        run: |
+          echo ""
+          echo "============================================"
+          echo "RÉSUMÉ — Test : ${{ github.event.inputs.test }}"
+          echo "Statut global : ${{ job.status }}"
+          echo "Date : $(date '+%d/%m/%Y %H:%M UTC')"
+          echo "============================================"
+          echo ""
+
+          echo "--- Comptage final des données en base ---"
+          for TABLE in prix_spot_marche offres_marche donnees_marche_avancees prix_mazout; do
+            COUNT=$(curl -s \
+              "${{ secrets.SUPABASE_URL }}/rest/v1/$TABLE?select=*&limit=1" \
+              -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+              -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+              -H "Prefer: count=exact" \
+              -I 2>/dev/null | grep -i "content-range" | sed 's/.*\///' | tr -d '[:space:]\r')
+            if [ "${COUNT:-0}" != "0" ] && [ "${COUNT:-0}" != "?" ]; then
+              echo "  OK  $TABLE : $COUNT lignes"
+            else
+              echo "  VIDE $TABLE : 0 lignes"
+            fi
+          done
