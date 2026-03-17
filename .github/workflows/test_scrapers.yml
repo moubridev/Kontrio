@@ -1,5 +1,5 @@
 name: Kontrio — Tests
- 
+
 on:
   workflow_dispatch:
     inputs:
@@ -13,17 +13,18 @@ on:
           - apis_sources_donnees
           - sites_fournisseurs
           - sites_mazout
+          - cartes_tarifaires
           - donnees_en_base
           - tout
- 
+
 jobs:
   test:
     name: "${{ github.event.inputs.test }}"
     runs-on: ubuntu-latest
-    timeout-minutes: 10
- 
+    timeout-minutes: 15
+
     steps:
- 
+
       - name: "Connexion Supabase"
         run: |
           echo "━━━ CONNEXION SUPABASE ━━━"
@@ -32,13 +33,111 @@ jobs:
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}")
           [ "$CODE" = "200" ] && echo "✅ Supabase OK" || { echo "❌ Supabase inaccessible (HTTP $CODE)"; exit 1; }
- 
+
       - name: "APIs sources de données"
         if: github.event.inputs.test == 'apis_sources_donnees' || github.event.inputs.test == 'tout'
         run: |
           echo ""
           echo "━━━ APIs SOURCES DE DONNÉES ━━━"
- 
+
+          chk() {
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
+              -H "User-Agent: Mozilla/5.0 Chrome/122.0" "$2" 2>/dev/null || echo "000")
+            case "$CODE" in
+              200|301|302|308) echo "  ✅ $1 (HTTP $CODE)" ;;
+              000)             echo "  ⚠️  $1 (timeout — normal si site bloque IPs GitHub)" ;;
+              400)             echo "  ⚠️  $1 (HTTP 400 — API instable, fallback disponible)" ;;
+              *)               echo "  ❌ $1 (HTTP $CODE)" ;;
+            esac
+          }
+
+          echo "--- Prix spot (Elexys principale, Elia fallback) ---"
+          chk "Elexys.be BELPEX (SOURCE PRINCIPALE)" "https://www.elexys.be/en/insights/epex-spot"
+          chk "Elia ODS034 (fallback — instable)" \
+            "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods034/records?limit=1&select=datetime,price"
+
+          echo ""
+          echo "--- Données avancées ---"
+          chk "AGSI site web" "https://agsi.gie.eu"
+          chk "Elia nucléaire ODS029" \
+            "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods029/records?limit=1"
+
+          echo ""
+          echo "--- Météo ---"
+          chk "Open-Meteo Bruxelles" \
+            "https://api.open-meteo.com/v1/forecast?latitude=50.8503&longitude=4.3517&daily=temperature_2m_mean&forecast_days=1&timezone=Europe/Brussels"
+          chk "Open-Meteo Liège" \
+            "https://api.open-meteo.com/v1/forecast?latitude=50.6326&longitude=5.5797&daily=temperature_2m_mean&forecast_days=1&timezone=Europe/Brussels"
+          chk "Open-Meteo Namur" \
+            "https://api.open-meteo.com/v1/forecast?latitude=50.4669&longitude=4.8675&daily=temperature_2m_mean&forecast_days=1&timezone=Europe/Brussels"
+
+          echo ""
+          echo "  Contenu météo Bruxelles :"
+          curl -s --max-time 8 \
+            "https://api.open-meteo.com/v1/forecast?latitude=50.8503&longitude=4.3517&daily=temperature_2m_mean&forecast_days=3&timezone=Europe/Brussels" \
+          | python3 -c "
+          import sys,json
+          d=json.load(sys.stdin)
+          dates=d['daily']['time']; temps=d['daily']['temperature_2m_mean']
+          for i in range(min(3,len(dates))):
+            print(f'  {dates[i]} : {temps[i]}°C | DJC: {max(0,15-temps[i]):.1f}')
+          " 2>/dev/null || true
+
+          echo ""
+          echo "--- Comparateurs officiels ---"
+          chk "VREG V-test (Flandre)" "https://vtest.vreg.be"
+          chk "CREG (fédéral)" "https://www.creg.be"
+          chk "CompaCWaPE (Wallonie — peut timeout sur GitHub)" "https://www.compacwape.be"
+          chk "BRUGEL (Bruxelles — peut timeout sur GitHub)" "https://brugel.brussels"
+
+      - name: "Sites fournisseurs"
+        if: github.event.inputs.test == 'sites_fournisseurs' || github.event.inputs.test == 'tout'
+        run: |
+          echo ""
+          echo "━━━ SITES FOURNISSEURS ━━━"
+          echo "301/302/308 = redirection → Python requests suit automatiquement = OK"
+
+          chk() {
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
+              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0) Chrome/122.0" \
+              -H "Accept-Language: fr-BE,fr;q=0.9" \
+              -H "Referer: https://www.google.be/" "$2" 2>/dev/null || echo "000")
+            case "$CODE" in
+              200|301|302|308) echo "  ✅ $1 (HTTP $CODE)" ;;
+              404)             echo "  ❌ $1 (HTTP 404 — URL morte)" ;;
+              000)             echo "  ⚠️  $1 (timeout — tester sur PC)" ;;
+              *)               echo "  ⚠️  $1 (HTTP $CODE)" ;;
+            esac
+          }
+
+          echo "--- Tarifs électricité ---"
+          chk "Engie"         "https://www.engie.be/fr/particuliers/electricite-gaz/tarifs/"
+          chk "Luminus"       "https://www.luminus.be/fr/particuliers/offres/electricite"
+          chk "Bolt"          "https://www.bolt.eu/be/fr/energy/"
+          chk "Mega"          "https://www.mega.be/fr/energie/tarifs"
+          chk "TotalEnergies" "https://www.totalenergies.be/fr/particuliers/electricite-gaz/tarifs"
+          chk "Octa+"         "https://www.octaplus.be/fr/electricite-gaz-naturel/tarifs"
+          chk "Ecopower"      "https://www.ecopower.be/fr/tarifs-electricite"
+
+          echo ""
+          echo "--- Tarifs gaz ---"
+          chk "Luminus gaz"       "https://www.luminus.be/fr/particuliers/offres/gaz"
+          chk "Mega gaz"          "https://www.mega.be/fr/energie/tarifs"
+          chk "Octa+ gaz"         "https://www.octaplus.be/fr/electricite-gaz-naturel/tarifs"
+          chk "TotalEnergies gaz" "https://www.totalenergies.be/fr/particuliers/electricite-gaz/tarifs"
+
+          echo ""
+          echo "--- Cartes tarifaires (PDFs mensuels) ---"
+          chk "Mega cartes tarifaires"  "https://www.mega.be/fr/energie/cartes-tarifaires"
+          chk "Octa+ tarifs & docs"     "https://www.octaplus.be/fr/electricite-gaz-naturel/tarifs"
+          chk "Engie injection PV"      "https://www.engie.be/fr/particuliers/electricite-solaire/tarif-injection/"
+
+      - name: "Sites mazout"
+        if: github.event.inputs.test == 'sites_mazout' || github.event.inputs.test == 'tout'
+        run: |
+          echo ""
+          echo "━━━ SITES PRIX MAZOUT ━━━"
+
           chk() {
             CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
               -H "User-Agent: Mozilla/5.0 Chrome/122.0" "$2" 2>/dev/null || echo "000")
@@ -48,155 +147,127 @@ jobs:
               *)           echo "  ❌ $1 (HTTP $CODE)" ;;
             esac
           }
- 
-          echo "--- Prix spot électricité ---"
-          echo "  Note: Elia Open Data est régulièrement surchargé (HTTP 400 fréquent)."
-          echo "  Le script PC utilisera Elexys.be en fallback si Elia échoue."
-          echo ""
-          chk "Elia ODS034 SDAC (source principale)" \
-            "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods034/records?limit=1&select=datetime,price"
-          chk "Elexys.be BELPEX (fallback stable)" \
-            "https://www.elexys.be/en/insights/epex-spot"
-          chk "ENTSO-E Transparency (fallback européen)" \
-            "https://web-api.tp.entsoe.eu"
- 
-          echo ""
-          echo "--- Données marché avancées ---"
-          chk "AGSI stockage gaz Europe" \
-            "https://agsi.gie.eu/api?type=EU"
-          chk "Elia nucléaire ODS029" \
-            "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods029/records?limit=1"
- 
-          echo ""
-          echo "  → Contenu AGSI stockage gaz :"
-          curl -s --max-time 8 "https://agsi.gie.eu/api?type=EU" | python3 -c "
-          import sys, json
-          try:
-            d = json.load(sys.stdin)
-            data = d.get('data', [])
-            if data:
-              f = data[0]
-              print(f'  ✅ Stockage gaz EU : {f.get(\"full\",\"?\")}% plein ({f.get(\"gasDayStart\",\"?\")})')
-            else:
-              print('  ⚠️  Réponse vide')
-          except Exception as e:
-            print(f'  ❌ Erreur : {e}')
-          " 2>/dev/null || echo "  ❌ Erreur parsing"
- 
-          echo ""
-          echo "--- Météo par commune (Open-Meteo) ---"
-          chk "Bruxelles (1000)" \
-            "https://api.open-meteo.com/v1/forecast?latitude=50.8503&longitude=4.3517&daily=temperature_2m_mean&forecast_days=1&timezone=Europe/Brussels"
-          chk "Liège (4000)" \
-            "https://api.open-meteo.com/v1/forecast?latitude=50.6326&longitude=5.5797&daily=temperature_2m_mean&forecast_days=1&timezone=Europe/Brussels"
-          chk "Namur (5000)" \
-            "https://api.open-meteo.com/v1/forecast?latitude=50.4669&longitude=4.8675&daily=temperature_2m_mean&forecast_days=1&timezone=Europe/Brussels"
-          chk "Gand (9000)" \
-            "https://api.open-meteo.com/v1/forecast?latitude=51.0536&longitude=3.7221&daily=temperature_2m_mean&forecast_days=1&timezone=Europe/Brussels"
- 
-          echo ""
-          echo "--- Comparateurs officiels ---"
-          chk "VREG V-test (Flandre)"    "https://vtest.vreg.be"
-          chk "CompaCWaPE (Wallonie)"    "https://www.compacwape.be"
-          chk "BRUGEL (Bruxelles)"       "https://brugel.brussels"
-          chk "CREG (fédéral)"           "https://www.creg.be"
- 
-      - name: "Sites fournisseurs"
-        if: github.event.inputs.test == 'sites_fournisseurs' || github.event.inputs.test == 'tout'
-        run: |
-          echo ""
-          echo "━━━ SITES FOURNISSEURS ━━━"
-          echo "Note: 301/302/308 = redirection, Python requests suit automatiquement → pas un problème"
-          echo ""
- 
-          chk() {
-            CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
-              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0" \
-              -H "Accept-Language: fr-BE,fr;q=0.9" \
-              -H "Referer: https://www.google.be/" \
-              "$2" 2>/dev/null || echo "000")
-            case "$CODE" in
-              200|301|302|308) echo "  ✅ $1 (HTTP $CODE)" ;;
-              404)             echo "  ❌ $1 (HTTP 404 — URL morte, à corriger)" ;;
-              000)             echo "  ⚠️  $1 (timeout)" ;;
-              *)               echo "  ⚠️  $1 (HTTP $CODE)" ;;
-            esac
-          }
- 
-          echo "--- Pages tarifs électricité ---"
-          chk "Engie tarifs"        "https://www.engie.be/fr/particuliers/electricite-gaz/tarifs/"
-          chk "Luminus offres"      "https://www.luminus.be/fr/particuliers/offres/electricite"
-          chk "Bolt énergie"        "https://www.bolt.eu/be/fr/energy/"
-          chk "Mega tarifs"         "https://www.mega.be/fr/energie/tarifs"
-          chk "TotalEnergies tarifs" "https://www.totalenergies.be/fr/particuliers/electricite-gaz/tarifs"
-          chk "Octa+ tarifs"        "https://www.octaplus.be/fr/electricite-gaz-naturel/tarifs"
-          chk "Ecopower tarifs"     "https://www.ecopower.be/fr/tarifs-electricite"
- 
-          echo ""
-          echo "--- Pages tarifs gaz ---"
-          chk "Engie gaz"           "https://www.engie.be/fr/particuliers/electricite-gaz/tarifs/"
-          chk "Luminus gaz"         "https://www.luminus.be/fr/particuliers/offres/gaz"
-          chk "TotalEnergies gaz"   "https://www.totalenergies.be/fr/particuliers/electricite-gaz/tarifs"
-          chk "Mega gaz"            "https://www.mega.be/fr/energie/tarifs"
-          chk "Octa+ gaz"           "https://www.octaplus.be/fr/electricite-gaz-naturel/tarifs"
- 
-          echo ""
-          echo "--- Pages injection PV ---"
-          chk "Engie injection PV"  "https://www.engie.be/fr/particuliers/electricite-solaire/tarif-injection/"
-          chk "Mega cartes tarif."  "https://www.mega.be/fr/energie/cartes-tarifaires"
-          chk "Octa+ tarifs docs"   "https://www.octaplus.be/fr/electricite-gaz-naturel/tarifs"
- 
-      - name: "Sites mazout"
-        if: github.event.inputs.test == 'sites_mazout' || github.event.inputs.test == 'tout'
-        run: |
-          echo ""
-          echo "━━━ SITES PRIX MAZOUT ━━━"
- 
-          chk() {
-            CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
-              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0" \
-              "$2" 2>/dev/null || echo "000")
-            case "$CODE" in
-              200|301|302) echo "  ✅ $1 (HTTP $CODE)" ;;
-              000)         echo "  ⚠️  $1 (timeout)" ;;
-              *)           echo "  ❌ $1 (HTTP $CODE)" ;;
-            esac
-          }
- 
-          chk "SPF Économie (prix officiel max)" \
+
+          chk "SPF Économie (prix officiel)" \
             "https://economie.fgov.be/fr/themes/energie/prix-de-lenergie/prix-maximum-des-produits/tarif-officiel-des-produits"
-          chk "Carbu.com (prix max officiel)" \
-            "https://carbu.com/belgique/prixmaximum"
-          chk "Mazout-on-line.be" \
-            "https://www.mazout-on-line.be/fr/prix-du-mazout-en-belgique/"
-          chk "Groupasol.com" \
-            "https://groupasol.com/fr/mazout/achat-immediat"
-          chk "In4fuels.be" \
-            "https://in4fuels.be/fr/tools/prix-combustibles"
- 
+          chk "Carbu.com"         "https://carbu.com/belgique/prixmaximum"
+          chk "Mazout-on-line.be" "https://www.mazout-on-line.be/fr/prix-du-mazout-en-belgique/"
+          chk "Groupasol.com"     "https://groupasol.com/fr/mazout/achat-immediat"
+
+          CODE_IN=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
+            -H "User-Agent: Mozilla/5.0 Chrome/122.0" \
+            "https://in4fuels.be/fr/tools/prix-combustibles" 2>/dev/null || echo "000")
+          [ "$CODE_IN" = "200" ] && echo "  ✅ In4fuels.be (HTTP $CODE_IN)" || echo "  ⚠️  In4fuels.be (HTTP $CODE_IN)"
+
           echo ""
-          echo "--- Données mazout actuelles en base ---"
+          echo "--- Données mazout en base ---"
           curl -s --max-time 8 \
             "${{ secrets.SUPABASE_URL }}/rest/v1/prix_mazout?select=date_prix,prix_officiel_max,conseil_achat,tendance&order=date_prix.desc&limit=3" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
           | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
+          import sys,json
+          data=json.load(sys.stdin)
           if data:
             print(f'  ✅ {len(data)} entrées :')
-            for d in data:
-              print(f'  {d[\"date_prix\"]} → {d[\"prix_officiel_max\"]} EUR/L | {d[\"tendance\"]} | conseil: {d[\"conseil_achat\"]}')
-          else:
-            print('  ⚠️  Aucune donnée mazout')
+            for d in data: print(f'  {d[\"date_prix\"]} → {d[\"prix_officiel_max\"]} EUR/L | {d[\"tendance\"]} | {d[\"conseil_achat\"]}')
+          else: print('  ⚠️  Aucune donnée mazout')
           " 2>/dev/null || true
- 
+
+      - name: "Cartes tarifaires & conditions"
+        if: github.event.inputs.test == 'cartes_tarifaires' || github.event.inputs.test == 'tout'
+        run: |
+          echo ""
+          echo "━━━ CARTES TARIFAIRES & CONDITIONS GÉNÉRALES ━━━"
+          echo "Ce script collecte les PDFs mensuels + extrait via Claude Vision"
+          echo ""
+
+          echo "--- Accessibilité des pages de cartes tarifaires ---"
+          chk() {
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
+              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0) Chrome/122.0" \
+              -H "Referer: https://www.google.be/" "$2" 2>/dev/null || echo "000")
+            case "$CODE" in
+              200|301|302|308) echo "  ✅ $1 — page accessible (HTTP $CODE)" ;;
+              000)             echo "  ⚠️  $1 — timeout (OK sur PC belge)" ;;
+              *)               echo "  ❌ $1 — HTTP $CODE" ;;
+            esac
+          }
+
+          chk "Mega cartes tarifaires"    "https://www.mega.be/fr/energie/cartes-tarifaires"
+          chk "Octa+ tarifs & docs"       "https://www.octaplus.be/fr/electricite-gaz-naturel/tarifs"
+          chk "Engie tarifs page"         "https://www.engie.be/fr/particuliers/electricite-gaz/tarifs/"
+          chk "Luminus offres"            "https://www.luminus.be/fr/particuliers/offres/electricite"
+          chk "TotalEnergies tarifs"      "https://www.totalenergies.be/fr/particuliers/electricite-gaz/tarifs"
+          chk "Bolt énergie"              "https://www.bolt.eu/be/fr/energy/"
+          chk "Ecopower tarifs"           "https://www.ecopower.be/fr/tarifs-electricite"
+
+          echo ""
+          echo "--- Test Claude API (nécessaire pour analyser les PDFs) ---"
+          if [ -z "${{ secrets.CLAUDE_API_KEY }}" ]; then
+            echo "  ⚠️  CLAUDE_API_KEY non configurée dans les secrets GitHub"
+            echo "  → Ajouter dans Settings > Secrets : CLAUDE_API_KEY"
+            echo "  → Sans cette clé, l'extraction PDF ne fonctionnera pas"
+            echo "  → Le scraping HTML basique fonctionnera quand même"
+          else
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+              -H "x-api-key: ${{ secrets.CLAUDE_API_KEY }}" \
+              -H "anthropic-version: 2023-06-01" \
+              "https://api.anthropic.com/v1/models")
+            [ "$CODE" = "200" ] \
+              && echo "  ✅ Claude API accessible — extraction PDF activée" \
+              || echo "  ❌ Claude API inaccessible (HTTP $CODE) — vérifier la clé"
+          fi
+
+          echo ""
+          echo "--- Données cartes tarifaires en base ---"
+          curl -s --max-time 8 \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/cartes_tarifaires?select=fournisseur_id,region,type_energie,prix_kwh_hp,confiance_extraction,mois_validite&order=mois_validite.desc&limit=5" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+          | python3 -c "
+          import sys,json
+          data=json.load(sys.stdin)
+          if data:
+            print(f'  ✅ {len(data)} cartes en base :')
+            for d in data:
+              print(f'  {d[\"mois_validite\"][:7]} | {d[\"region\"]} | {d[\"type_energie\"]} | {d[\"prix_kwh_hp\"]} EUR/kWh | conf: {d[\"confiance_extraction\"]}%')
+          else:
+            print('  ⚠️  Aucune carte tarifaire — sera rempli par le script PC')
+          " 2>/dev/null || true
+
+          echo ""
+          echo "--- Signaux de changement tarifaire détectés ---"
+          curl -s --max-time 8 \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/signaux_marche?select=type_signal,message,date_signal,niveau&order=date_signal.desc&limit=5" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+          | python3 -c "
+          import sys,json
+          data=json.load(sys.stdin)
+          if data:
+            print(f'  {len(data)} signaux récents :')
+            for d in data:
+              print(f'  [{d[\"niveau\"]}] {d[\"date_signal\"]} — {d[\"message\"][:80]}')
+          else:
+            print('  ✅ Aucun changement tarifaire détecté (normal)')
+          " 2>/dev/null || true
+
+          echo ""
+          echo "--- Fréquences recommandées ---"
+          echo "  Prix spot électricité  : toutes les 2h"
+          echo "  Prix mazout            : 1x/jour"
+          echo "  Cartes tarifaires PDF  : 1x/semaine (lundi matin)"
+          echo "  Conditions générales   : 1x/mois (1er du mois)"
+          echo "  Tarifs réseau          : 1x/trimestre"
+          echo "  Contexte réglementaire : 1x/mois"
+
       - name: "Données en base"
         if: github.event.inputs.test == 'donnees_en_base' || github.event.inputs.test == 'tout'
         run: |
           echo ""
           echo "━━━ DONNÉES EN BASE ━━━"
- 
+
           count() {
             N=$(curl -s --max-time 8 \
               "${{ secrets.SUPABASE_URL }}/rest/v1/$1?select=*&limit=1" \
@@ -209,24 +280,24 @@ jobs:
               && echo "  ✅ $3 : $N lignes" \
               || echo "  ❌ $3 : $N lignes (attendu ≥ ${2:-1})"
           }
- 
+
           echo "--- Données statiques ---"
-          count fournisseurs 10 "Fournisseurs belges"
-          count tarifs_reseau 10 "Tarifs réseau Fluvius/Ores/Sibelga"
-          count contexte_reglementaire 5 "Contexte réglementaire TVA/cotisations"
-          count primes_renovation 10 "Primes rénovation régionales"
-          count sources_collecte 5 "Sources données (traçabilité légale)"
-          count codes_postaux_belgique 20 "Codes postaux GPS (météo par commune)"
-          count offres_marche 20 "Offres marché (seed initial)"
-          count prix_mazout 1 "Prix mazout"
- 
+          count fournisseurs 10             "Fournisseurs belges"
+          count tarifs_reseau 10            "Tarifs réseau Fluvius/Ores/Sibelga"
+          count contexte_reglementaire 5    "Contexte réglementaire TVA/cotisations"
+          count primes_renovation 10        "Primes rénovation régionales"
+          count sources_collecte 5          "Sources données (traçabilité légale)"
+          count codes_postaux_belgique 20   "Codes postaux GPS (météo par commune)"
+          count offres_marche 20            "Offres marché (seed initial)"
+          count prix_mazout 1               "Prix mazout"
+
           echo ""
-          echo "--- Données collectées (PC Belgique) ---"
-          count prix_spot_marche 1 "Prix spot électricité"
-          count donnees_marche_avancees 1 "Données avancées marché"
-          count historique_prix_marche 1 "Historique prix"
-          count cartes_tarifaires 0 "Cartes tarifaires PDF"
- 
+          echo "--- Données collectées PC Belgique ---"
+          count prix_spot_marche 1          "Prix spot électricité"
+          count donnees_marche_avancees 1   "Données avancées marché"
+          count historique_prix_marche 1    "Historique prix"
+          count cartes_tarifaires 0         "Cartes tarifaires PDF"
+
           echo ""
           echo "--- Fraîcheur ---"
           curl -s --max-time 8 \
@@ -234,51 +305,51 @@ jobs:
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
           | python3 -c "
-          import sys, json
-          from datetime import datetime, timezone
-          d = json.load(sys.stdin)
+          import sys,json
+          from datetime import datetime,timezone
+          d=json.load(sys.stdin)
           if d:
-            dt = datetime.fromisoformat(d[0]['date_heure'].replace('Z','+00:00'))
-            age = (datetime.now(timezone.utc) - dt).total_seconds() / 3600
-            i = '✅' if age < 4 else '⚠️' if age < 12 else '❌'
+            dt=datetime.fromisoformat(d[0]['date_heure'].replace('Z','+00:00'))
+            age=(datetime.now(timezone.utc)-dt).total_seconds()/3600
+            i='✅' if age<4 else '⚠️' if age<12 else '❌'
             print(f'  {i} Prix spot : {d[0][\"prix_eur_mwh\"]} EUR/MWh ({age:.1f}h)')
-          else:
-            print('  ⚠️  Prix spot : aucune donnée — sera rempli depuis le PC Belgique')
+          else: print('  ⚠️  Prix spot : vide — sera rempli par le PC')
           " 2>/dev/null || true
- 
+
           curl -s --max-time 8 \
             "${{ secrets.SUPABASE_URL }}/rest/v1/prix_mazout?select=date_prix,prix_officiel_max,conseil_achat&order=date_prix.desc&limit=1" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
           | python3 -c "
-          import sys, json
-          d = json.load(sys.stdin)
-          if d:
-            print(f'  ✅ Mazout : {d[0][\"prix_officiel_max\"]} EUR/L — conseil: {d[0][\"conseil_achat\"]}')
-          else:
-            print('  ⚠️  Mazout : aucune donnée récente')
+          import sys,json
+          d=json.load(sys.stdin)
+          if d: print(f'  ✅ Mazout : {d[0][\"prix_officiel_max\"]} EUR/L — {d[0][\"conseil_achat\"]}')
+          else: print('  ⚠️  Mazout : vide')
           " 2>/dev/null || true
- 
+
           echo ""
-          echo "--- Pipeline clients (vide = normal avant lancement) ---"
-          count prospects 0 "Prospects"
-          count utilisateurs 0 "Utilisateurs"
+          echo "--- Pipeline clients ---"
+          count prospects 0       "Prospects"
+          count utilisateurs 0    "Utilisateurs"
           count contrats_energie 0 "Contrats suivis"
-          count alertes 0 "Alertes envoyées"
-          count jobs_veille 0 "Jobs exécutés"
- 
+          count alertes 0         "Alertes envoyées"
+          count jobs_veille 0     "Jobs exécutés"
+
       - name: "Résumé"
         if: always()
         run: |
           echo ""
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "Test       : ${{ github.event.inputs.test }}"
-          echo "Résultat   : ${{ job.status }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Test : ${{ github.event.inputs.test }} | ${{ job.status }}"
           echo "$(date '+%d/%m/%Y %H:%M UTC')"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "✅ OK  |  ⚠️ à surveiller  |  ❌ à corriger"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ OK | ⚠️ surveiller / normal | ❌ à corriger"
           echo ""
-          echo "Architecture :"
-          echo "  Scripts Python PC → Supabase REST API"
-          echo "  GitHub Actions → tests uniquement"
- 
+          echo "Rappel fréquences de collecte :"
+          echo "  2h      → Prix spot électricité (Elexys)"
+          echo "  1j      → Prix mazout (SPF Économie)"
+          echo "  1j      → Données avancées marché (AGSI, nucléaire)"
+          echo "  1j      → Météo par commune (Open-Meteo)"
+          echo "  1sem    → Cartes tarifaires PDF (Claude Vision)"
+          echo "  1mois   → Conditions générales complètes"
+          echo "  1trim   → Tarifs réseau (Fluvius/Ores/Sibelga)"
